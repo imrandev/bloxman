@@ -17,6 +17,7 @@ import io.flutter.plugin.common.MethodChannel
 import java.lang.Exception
 
 class MainActivity: FlutterActivity() {
+
     private fun checkSetAsDefaultDialer() : Boolean {
         if (getSystemService(TelecomManager::class.java).defaultDialerPackage != packageName) {
             Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER)
@@ -30,7 +31,6 @@ class MainActivity: FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger,
             "com.imk.dev/blox").setMethodCallHandler { call, result ->
-
             val phone = call.argument<String>("contact")
             when(call.method){
                 "addToBlock" -> {
@@ -79,7 +79,6 @@ class MainActivity: FlutterActivity() {
 
     private fun retrieveBlockedContacts(result: MethodChannel.Result){
         val contacts = ArrayList<ContactModel>()
-
         if (checkSetAsDefaultDialer()){
             val cursor: Cursor? = contentResolver.query(
                 BlockedNumberContract.BlockedNumbers.CONTENT_URI, arrayOf(
@@ -88,7 +87,6 @@ class MainActivity: FlutterActivity() {
                     BlockedNumberContract.BlockedNumbers.COLUMN_E164_NUMBER
                 ), null, null, null
             )
-
             if (cursor != null) {
                 while (cursor.moveToNext()) {
                     val id = cursor.getInt(
