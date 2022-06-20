@@ -32,8 +32,14 @@ dependencies:
   contacts_service:
   permission_handler:
   get_it:
+  injectable:
+  floor:
+  sqflite:
 
 dev_dependencies:
+  floor_generator:
+  build_runner:
+  injectable_generator:
   flutter_test:
     sdk: flutter
 

@@ -57,10 +57,10 @@ class HomePage extends StatelessWidget {
         },
         stream: _bloc.bottomNavIndexStream,
       ),
-      floatingActionButton: FloatingActionButton.small(
+      floatingActionButton: FloatingActionButton(
         onPressed: () {},
         child: const Icon(
-          Icons.block,
+          Icons.person_add_outlined,
           color: Colors.white,
         ),
       ),
