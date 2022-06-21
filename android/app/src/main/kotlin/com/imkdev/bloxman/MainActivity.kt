@@ -1,24 +1,44 @@
 package com.imkdev.bloxman
 
 import io.flutter.embedding.android.FlutterActivity
-import android.content.ContentValues
 import android.content.Intent
-import android.database.Cursor
-import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.provider.BlockedNumberContract
 import android.telecom.TelecomManager
 import android.util.Log
 import androidx.annotation.NonNull
 import com.imkdev.bloxman.model.ContactModel
-import com.google.gson.Gson
+import com.imkdev.bloxman.service.BlockService
+import com.imkdev.bloxman.service.ContactBlockService
+import com.imkdev.bloxman.utils.Argument
+import com.imkdev.bloxman.utils.Constant
+import com.imkdev.bloxman.utils.Message
+import com.imkdev.bloxman.utils.Method
+import com.imkdev.bloxman.utils.Permission.REQUEST_CODE_DEFAULT_DIALER
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import java.lang.Exception
 
 class MainActivity: FlutterActivity() {
 
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
+    lateinit var blockService: BlockService<ContactModel>
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        blockService = ContactBlockService()
+
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
+            requestPermission()
+        } else {
+            checkSetAsDefaultDialer()
+        }
+    }
+
     private fun checkSetAsDefaultDialer() : Boolean {
+
         if (getSystemService(TelecomManager::class.java).defaultDialerPackage != packageName) {
             Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER)
                 .putExtra(TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, packageName)
@@ -27,77 +47,57 @@ class MainActivity: FlutterActivity() {
         return getSystemService(TelecomManager::class.java).defaultDialerPackage == packageName
     }
 
+    private fun requestPermission(){
+        startActivityForResult(Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER).apply {
+            putExtra(
+                TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME,
+                packageName
+            )
+        }, REQUEST_CODE_DEFAULT_DIALER)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_DEFAULT_DIALER) {
+            Log.d(TAG, "Request Code: $requestCode")
+            when (resultCode) {
+                RESULT_OK -> Log.d(TAG, "User granted default dialer permission")
+                RESULT_CANCELED -> Log.d(TAG, "User denied default dialer permission")
+                else -> Log.d(TAG, "Result code: $resultCode")
+            }
+        }
+    }
+
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger,
-            "com.imk.dev/blox").setMethodCallHandler { call, result ->
-            val phone = call.argument<String>("contact")
+            Constant.methodChannel).setMethodCallHandler { call, result ->
+            val phone = call.argument<String>(Argument.contactKey)
             when(call.method){
-                "addToBlock" -> {
-                    if (phone != null){
-                        addToBlock(phone, result)
+                Method.addContactIntoBlockList -> {
+                    if (checkSetAsDefaultDialer()){
+                        blockService.insert(context, phone) {
+                            result.success(it)
+                        }
+                    } else {
+                        result.success(Message.defaultPermissionDenied)
                     }
                 }
-                "removeFromBlock" -> {
-                    if (phone != null) {
-                        removeFromBlock(phone, result)
+                Method.deleteContactFromBlockList -> {
+                    blockService.delete(context, phone) {
+                        result.success(it)
                     }
                 }
-                "checkSetAsDefaultDialer" -> {
-                    result.success(checkSetAsDefaultDialer())
+                Method.checkDefaultPermission -> {
+                    if (!checkSetAsDefaultDialer()) {
+                        result.success(Message.defaultPermissionDenied)
+                    }
                 }
-                "retrieveBlockedContacts" -> {
-                    retrieveBlockedContacts(result)
+                Method.fetchBlockList -> {
+                    blockService.findAll(context) {
+                        result.success(it)
+                    }
                 }
-            }
-        }
-    }
-
-    private fun addToBlock(phone: String, result: MethodChannel.Result){
-        try {
-            val values = ContentValues()
-            values.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, phone)
-            val uri: Uri? = contentResolver.insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, values)
-            if (uri != null){
-                result.success("Successfully added to the block list")
-            } else {
-                result.success("Try Again!")
-            }
-        } catch (ex: Exception){
-            ex.printStackTrace()
-            result.success(ex.localizedMessage)
-        }
-    }
-
-    private fun removeFromBlock(phone: String, result: MethodChannel.Result){
-        val values = ContentValues()
-        values.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, phone)
-        val uri = contentResolver.insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, values)
-        val i = contentResolver.delete(uri!!, null, null)
-        result.success(if (i == 1) "Successfully contact unblocked!" else "Failed to unblock contact, try again!")
-    }
-
-    private fun retrieveBlockedContacts(result: MethodChannel.Result){
-        val contacts = ArrayList<ContactModel>()
-        if (checkSetAsDefaultDialer()){
-            val cursor: Cursor? = contentResolver.query(
-                BlockedNumberContract.BlockedNumbers.CONTENT_URI, arrayOf(
-                    BlockedNumberContract.BlockedNumbers.COLUMN_ID,
-                    BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER,
-                    BlockedNumberContract.BlockedNumbers.COLUMN_E164_NUMBER
-                ), null, null, null
-            )
-            if (cursor != null) {
-                while (cursor.moveToNext()) {
-                    val id = cursor.getInt(
-                        cursor.getColumnIndexOrThrow(BlockedNumberContract.BlockedNumbers.COLUMN_ID))
-                    val phone = cursor.getString(
-                        cursor.getColumnIndexOrThrow(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER))
-                    contacts.add(ContactModel(id, phone))
-                }
-                cursor.close()
-                val json = Gson().toJson(contacts)
-                result.success(json)
             }
         }
     }

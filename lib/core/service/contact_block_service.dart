@@ -5,8 +5,10 @@ import 'package:bloxman/core/logger/logger.dart';
 import 'package:bloxman/core/service/block_service.dart';
 import 'package:bloxman/core/utils/constant.dart';
 import 'package:flutter/services.dart';
+import 'package:injectable/injectable.dart';
 
-class BlockServiceImpl extends BlockService {
+@Injectable(as: BlockService)
+class ContactBlockService extends BlockService {
   final platform = MethodChannel('com.imk.dev/blox');
 
   @override
@@ -38,14 +40,12 @@ class BlockServiceImpl extends BlockService {
   @override
   Future<String> insert(String phone) async {
     try {
-      if (await platform.invokeMethod(checkSetAsDefaultDialer)) {
-        final String result =
-            await platform.invokeMethod(insertContactIntoBlockList, {
-          contactKey: phone,
-        });
-        logger.printDebugLog(result);
-        return result;
-      }
+      final String result =
+      await platform.invokeMethod(insertContactIntoBlockList, {
+        contactKey: phone,
+      });
+      logger.printDebugLog(result);
+      return result;
     } on PlatformException catch (e) {
       logger.printErrorLog(e.message);
     }

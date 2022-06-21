@@ -1,13 +1,16 @@
 import 'package:bloxman/contact/domain/model/contact_model.dart';
+import 'package:bloxman/core/di/injection.dart';
 import 'package:bloxman/core/logger/logger.dart';
 import 'package:bloxman/core/provider/bloc_provider.dart';
+import 'package:bloxman/core/service/block_service.dart';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
 
 class ContactBloc extends BlocBase {
-  static const platform = MethodChannel('com.imk.dev/blox');
+
+  final BlockService blockService = getIt<BlockService>();
 
   final _contactController = BehaviorSubject<List<ContactModel>>();
   Function(List<ContactModel>) get _contactSink => _contactController.sink.add;
@@ -60,13 +63,9 @@ class ContactBloc extends BlocBase {
   Future<String> addToBlock(int index) async {
     List<ContactModel> contacts = _contactController.value;
     try {
-      if (await platform.invokeMethod('checkSetAsDefaultDialer')) {
-        final String result = await platform.invokeMethod('addToBlock', {
-          "contact": contacts[index].phone,
-        });
-        logger.printDebugLog(result);
-        return result;
-      }
+      String message = await blockService.insert(contacts[index].phone);
+      logger.printDebugLog(message);
+      return message;
     } on PlatformException catch (e) {
       logger.printErrorLog(e.message);
     }
