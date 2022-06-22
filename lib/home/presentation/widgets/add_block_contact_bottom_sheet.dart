@@ -17,12 +17,18 @@ class AddBlockContactBottomSheet extends BloxBottomSheet {
     bottomSheetBuilder: (context) {
       return Column(
         children: [
-          topIcon,
-          const SizedBox(height: 20,),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              topIcon,
+              const SizedBox(height: 20,),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400,),
+              ),
+            ],
           ),
           const SizedBox(height: 20,),
         ],
