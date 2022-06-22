@@ -14,8 +14,7 @@ class ContactBlockService extends BlockService {
   @override
   Future<String> delete(String phone) async {
     try {
-      final String result =
-          await platform.invokeMethod(deleteContactFromBlockList, {
+      final String result = await platform.invokeMethod(deleteContactFromBlockList, {
         contactKey: phone,
       });
       logger.printDebugLog(result);
@@ -40,8 +39,7 @@ class ContactBlockService extends BlockService {
   @override
   Future<String> insert(String phone) async {
     try {
-      final String result =
-      await platform.invokeMethod(insertContactIntoBlockList, {
+      final String result = await platform.invokeMethod(insertContactIntoBlockList, {
         contactKey: phone,
       });
       logger.printDebugLog(result);

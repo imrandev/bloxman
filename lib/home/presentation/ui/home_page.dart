@@ -4,9 +4,11 @@ import 'package:bloxman/contact/presentation/bloc/contact_bloc.dart';
 import 'package:bloxman/contact/presentation/ui/contact_page.dart';
 import 'package:bloxman/core/provider/bloc_provider.dart';
 import 'package:bloxman/home/presentation/bloc/home_bloc.dart';
+import 'package:bloxman/home/presentation/widgets/add_block_contact_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
+
   const HomePage({Key? key}) : super(key: key);
 
   @override
@@ -58,7 +60,13 @@ class HomePage extends StatelessWidget {
         stream: _bloc.bottomNavIndexStream,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          AddBlockContactBottomSheet(topIcon: Icon(
+            Icons.add
+          ), message: "Add Contact", onAddClosing: () {
+
+          },).show(context: context);
+        },
         child: const Icon(
           Icons.person_add_outlined,
           color: Colors.white,

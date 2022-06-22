@@ -7,6 +7,4 @@ abstract class AppModule {
 
   @preResolve
   Future<DatabaseService> get databaseService => DatabaseClient.init();
-
-
 }
