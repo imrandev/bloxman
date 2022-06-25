@@ -1,10 +1,13 @@
 import 'package:bloxman/blockedList/presentation/bloc/blocked_bloc.dart';
 import 'package:bloxman/blockedList/presentation/ui/blocked_page.dart';
+import 'package:bloxman/collection/presentation/bloc/collection_bloc.dart';
+import 'package:bloxman/collection/presentation/ui/collection_page.dart';
 import 'package:bloxman/contact/presentation/bloc/contact_bloc.dart';
 import 'package:bloxman/contact/presentation/ui/contact_page.dart';
 import 'package:bloxman/core/provider/bloc_provider.dart';
 import 'package:bloxman/home/presentation/bloc/home_bloc.dart';
 import 'package:bloxman/home/presentation/widgets/add_block_contact_bottom_sheet.dart';
+import 'package:bloxman/settings/presentation/ui/settings_page.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -29,14 +32,18 @@ class HomePage extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+
+            },
             icon: Icon(Icons.search),
             padding: EdgeInsets.only(
               right: 25,
             ),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              _bloc.updateBottomNavIndex(2);
+            },
             icon: Icon(Icons.settings),
             padding: EdgeInsets.only(
               right: 25,
@@ -52,7 +59,16 @@ class HomePage extends StatelessWidget {
                   child: const ContactPage(), bloc: ContactBloc());
             case 1:
               return BlocProvider(
-                  child: const BlockedPage(), bloc: BlockedBloc());
+                  child: CollectionPage(), bloc: CollectionBloc());
+            case 2:
+              return SettingsPage(
+                blockListCallback: (index) {
+                  _bloc.updateBottomNavIndex(index);
+                },
+              );
+            case 3:
+              return BlocProvider(
+                  child: BlockedPage(), bloc: BlockedBloc());
             default:
               return Container();
           }
@@ -61,11 +77,23 @@ class HomePage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          AddBlockContactBottomSheet(topIcon: Icon(
-            Icons.add
-          ), message: "Add Contact", onAddClosing: () {
+          AddBlockContactBottomSheet(
+            topIcon: Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
+            message: "Add Contact",
+            onAddClosing: () {
 
-          },).show(context: context);
+            },
+            onSubmit: (c) {
+              Navigator.pop(c);
+            },
+            controller: TextEditingController(),
+          ).show(
+            context: context,
+            isDismissible: false,
+          );
         },
         child: const Icon(
           Icons.person_add_outlined,
@@ -107,13 +135,13 @@ class HomePage extends StatelessWidget {
                   label: "Contacts",
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.block),
-                  label: "Blocked",
+                  icon: Icon(Icons.library_books),
+                  label: "Collections",
                 ),
               ],
               backgroundColor: Colors.transparent,
               elevation: 0,
-              currentIndex: snapshot.hasData ? snapshot.data! : 0,
+              currentIndex: snapshot.hasData && snapshot.data! < 2 ? snapshot.data! : 0,
               onTap: (index) {
                 _bloc.updateBottomNavIndex(index);
               },

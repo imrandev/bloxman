@@ -20,17 +20,8 @@ class BloxBottomSheet extends BottomSheet {
         child: Container(
           width: MediaQuery.of(context).size.width,
           height: height,
-          padding: const EdgeInsets.symmetric(horizontal: 20,),
-          child: Form(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 10,),
-                bottomSheetBuilder(context),
-              ],
-            ),
-          ),
+          padding: const EdgeInsets.all(20,),
+          child: bottomSheetBuilder(context),
         ),
       ),
     ),

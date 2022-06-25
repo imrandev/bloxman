@@ -1,6 +1,8 @@
 import 'package:bloxman/contact/domain/model/contact_model.dart';
 import 'package:bloxman/contact/presentation/bloc/contact_bloc.dart';
 import 'package:bloxman/core/provider/bloc_provider.dart';
+import 'package:bloxman/core/widgets/card_widget.dart';
+import 'package:bloxman/core/widgets/circle_widget.dart';
 import 'package:flutter/material.dart';
 
 class ContactPage extends StatelessWidget {
@@ -28,30 +30,32 @@ class ContactPage extends StatelessWidget {
                     snapshot.data!.isNotEmpty
                 ? ListView.builder(
                     itemCount: snapshot.data!.length,
+                    padding: EdgeInsets.all(16),
                     itemBuilder: (context, index) {
-                      return Card(
+                      return InkWell(
+                        onTap: (){},
+                        borderRadius: BorderRadius.circular(5),
                         child: ListTile(
                           leading: snapshot.data![index].selected
                               ? Checkbox(
-                                  value: snapshot.data![index].selected,
-                                  onChanged: (value) {
-                                    _bloc.updateSelection(index);
-                                  },
-                                )
-                              : const Icon(
-                                  Icons.person_outline,
-                                  size: 24,
-                                ),
+                            value: snapshot.data![index].selected,
+                            onChanged: (value) {
+                              _bloc.updateSelection(index);
+                            },
+                          )
+                              : CircleWidget(builder: (_) => Icon(
+                            Icons.person_outline,
+                            size: 24,
+                            color: Colors.white,
+                          ),),
                           selected: snapshot.data![index].selected,
                           title: Text(snapshot.data![index].displayName),
                           subtitle: Text(snapshot.data![index].phone),
-                          onLongPress: () {},
                           trailing: IconButton(
                             onPressed: () async {
                               // add contact to block list
                               String message = await _bloc.addToBlock(index);
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(SnackBar(
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Text(message),
                               ));
                             },
@@ -59,7 +63,6 @@ class ContactPage extends StatelessWidget {
                               Icons.block,
                             ),
                           ),
-                          onTap: () {},
                         ),
                       );
                     },
